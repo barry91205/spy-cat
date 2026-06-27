@@ -71,27 +71,12 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import NavBar from '@/components/Navbar.vue'
 import HeroBanner from '@/components/Herobanner.vue'
 import PawDivider from '@/components/PawDivider.vue'
 import CatCard from '@/components/Catcard.vue'
 import CatDetailModal from '@/components/Catdetailmodal.vue'
 import PostModal from '@/components/Postmodal.vue'
-
-type Cat = {
-  id: number
-  name: string
-  breed: string
-  status: string
-  statusLabel: string
-  image: string
-  desc: string
-  location: string
-  date: string
-  contact: string
-  comments: number
-  fav: boolean
-}
+import type { Cat } from '@/types/cat'
 
 const searchQuery  = ref('')
 const activeFilter = ref('all')
