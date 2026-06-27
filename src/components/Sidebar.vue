@@ -51,11 +51,10 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import SidebarItem from '@/components/Sidebaritem.vue'
 
 const router   = useRouter()
-const route    = useRoute()
 const expanded = ref(false)
 
 interface NavItem {
