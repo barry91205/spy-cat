@@ -1,94 +1,98 @@
 <template>
   <div class="min-h-screen" style="background-color: #FFF8F0; font-family: 'Noto Sans TC', sans-serif;">
 
-    <!-- 導覽列 -->
-    <!-- <NavBar @open-post="showPostModal = true" /> -->
+    <!-- 頂部 bar -->
+<div class="sticky top-1 rounded z-10 bg-white border-b border-caramel/20 px-4 py-3 flex items-center justify-between max-w-lg mx-auto w-full">
+  <span class="text-xl font-bold text-paw">🐾 偵探貓</span>
+  <button @click="showPostModal = true" class="text-muted hover:text-paw transition-colors">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+    </svg>
+  </button>
+</div>
 
-    <!-- Hero Banner -->
-    <HeroBanner v-model:search="searchQuery" />
+    <!-- Feed -->
+    <div class="max-w-lg mx-auto px-4 py-4 mt-4 flex flex-col gap-5">
+      <div
+        v-for="cat in cats" :key="cat.id"
+        class="bg-white rounded-2xl overflow-hidden shadow-sm"
+        @click="openDetail(cat)"
+      >
+        <!-- 頂部：名字 + 狀態 -->
+        <div class="flex items-center justify-between px-4 pt-3 pb-2">
+          <div>
+            <span class="font-semibold text-gray-800 text-sm">{{ cat.name }}</span>
+            <span class="text-gray-400 text-xs ml-2">{{ cat.breed }}</span>
+          </div>
+          <span :class="statusClass(cat.status)" class="text-xs font-semibold px-2.5 py-1 rounded-full">
+            {{ cat.statusLabel }}
+          </span>
+        </div>
 
-    <!-- 篩選標籤 -->
-    <div class="max-w-5xl mx-auto px-4 mt-6">
-      <div class="flex gap-2 flex-wrap">
-        <button
-          v-for="f in filters" :key="f.value"
-          @click="activeFilter = f.value"
-          :class="[
-            'px-4 py-1.5 rounded-full text-sm font-medium border transition-all',
-            activeFilter === f.value
-              ? 'bg-paw text-white border-paw shadow-sm'
-              : 'bg-white text-muted border-caramel/30 hover:border-paw hover:text-paw'
-          ]"
-        >
-          {{ f.label }}
-        </button>
+        <!-- 照片 -->
+        <img :src="cat.image" :alt="cat.name" class="w-full aspect-square object-cover" />
+
+        <!-- 底部資訊 -->
+        <div class="px-4 py-3 flex flex-col gap-1.5">
+          <!-- 愛心 + 留言 -->
+          <div class="flex items-center gap-4 text-gray-500 text-sm">
+            <button @click.stop="toggleFav(cat)" class="flex items-center gap-1 transition-colors" :class="cat.fav ? 'text-red-500' : 'hover:text-red-400'">
+              <span>{{ cat.fav ? '❤️' : '🤍' }}</span>
+            </button>
+            <span class="flex items-center gap-1">
+              <span>💬</span>
+              <span>{{ cat.comments }}</span>
+            </span>
+          </div>
+
+          <!-- 地點 + 日期 -->
+          <div class="flex items-center gap-1 text-xs text-gray-400">
+            <span>📍</span>
+            <span>{{ cat.location }}</span>
+            <span class="mx-1">·</span>
+            <span>{{ cat.date }}</span>
+          </div>
+
+          <!-- 描述 -->
+          <p class="text-sm text-gray-600 leading-relaxed line-clamp-2">{{ cat.desc }}</p>
+        </div>
       </div>
-      <PawDivider class="mt-4" />
     </div>
 
-    <!-- 卡片列表 -->
-    <div class="max-w-5xl mx-auto px-4 pb-24">
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-        <CatCard
-          v-for="cat in filteredCats" :key="cat.id"
-          :cat="cat"
-          @click="openDetail(cat)"
-          @toggle-fav="toggleFav(cat)"
-        />
-      </div>
-
-      <!-- 空狀態 -->
-      <div v-if="filteredCats.length === 0" class="text-center py-20">
-        <div class="text-5xl mb-4">🐾</div>
-        <p class="text-muted text-base">目前沒有符合條件的貓咪</p>
-        <p class="text-muted text-sm mt-1">試試看其他篩選條件？</p>
-      </div>
-    </div>
-
-    <!-- 手機版浮動按鈕 -->
+    <!-- 浮動發布按鈕 -->
     <button
       @click="showPostModal = true"
-      class="fab md:hidden bg-paw text-white w-14 h-14 rounded-full flex items-center justify-center text-2xl font-bold fixed bottom-8 right-8 z-50"
+      class="fixed bottom-8 right-8 z-50 bg-paw hover:bg-pawDark text-white w-14 h-14 rounded-full flex items-center justify-center text-2xl font-bold shadow-lg transition-colors"
     >
       ＋
     </button>
 
     <!-- 詳情 Modal -->
-    <CatDetailModal
-      v-if="selectedCat"
-      :cat="selectedCat"
-      @close="selectedCat = null"
-    />
-
-    <!-- 發布 Modal -->
-    <PostModal
-      v-if="showPostModal"
-      @close="showPostModal = false"
-    />
+    <CatDetailModal v-if="selectedCat" :cat="selectedCat" @close="selectedCat = null" />
+    <PostModal v-if="showPostModal" @close="showPostModal = false" />
 
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import HeroBanner from '@/components/Herobanner.vue'
-import PawDivider from '@/components/PawDivider.vue'
-import CatCard from '@/components/Catcard.vue'
+import { ref } from 'vue'
 import CatDetailModal from '@/components/Catdetailmodal.vue'
 import PostModal from '@/components/Postmodal.vue'
 import type { Cat } from '@/types/cat'
 
-const searchQuery  = ref('')
-const activeFilter = ref('all')
-const selectedCat  = ref<Cat | null>(null)
+const selectedCat = ref<Cat | null>(null)
 const showPostModal = ref(false)
 
-const filters = [
-  { label: '全部',        value: 'all'     },
-  { label: '🔴 走失中',   value: 'lost'    },
-  { label: '🟢 已目擊',   value: 'found'   },
-  { label: '🟡 待認領',   value: 'looking' },
-]
+const openDetail = (cat: Cat) => { selectedCat.value = cat }
+const toggleFav = (cat: Cat) => { cat.fav = !cat.fav }
+
+function statusClass(status: string) {
+  return {
+    lost:    'bg-red-100 text-red-600',
+    found:   'bg-green-100 text-green-600',
+    looking: 'bg-yellow-100 text-yellow-700',
+  }[status] ?? ''
+}
 
 const cats = ref<Cat[]>([
   {
@@ -123,50 +127,5 @@ const cats = ref<Cat[]>([
     location: '新北市板橋區', date: '2026/06/11',
     contact: '0945-678-901', comments: 5, fav: false,
   },
-  {
-    id: 5, name: '糰子', breed: '布偶貓',
-    status: 'lost', statusLabel: '走失中',
-    image: 'https://placecats.com/neo_2/300/200',
-    desc: '布偶貓，藍眼睛，毛長且蓬鬆，臉部有深色花紋，非常溫馴，走失已三天。',
-    location: '台北市松山區', date: '2026/06/09',
-    contact: '0956-789-012', comments: 21, fav: false,
-  },
-  {
-    id: 6, name: '虎斑', breed: '虎斑貓',
-    status: 'found', statusLabel: '已目擊',
-    image: 'https://placecats.com/millie_neo/300/200',
-    desc: '棕色虎斑花紋，在文山區動物園附近多次被目擊，疑似走失中，請主人聯繫。',
-    location: '台北市文山區', date: '2026/06/14',
-    contact: '0967-890-123', comments: 7, fav: false,
-  },
 ])
-
-const filteredCats = computed(() => {
-  let list = cats.value
-  if (activeFilter.value !== 'all') {
-    list = list.filter((cat: Cat) => cat.status === activeFilter.value)
-  }
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase()
-    list = list.filter((cat: Cat) =>
-      cat.name.includes(q) || cat.location.includes(q) ||
-      cat.desc.includes(q)  || cat.breed.includes(q)
-    )
-  }
-  return list
-})
-
-const openDetail = (cat: Cat) => { selectedCat.value = cat }
-const toggleFav  = (cat: Cat) => { cat.fav = !cat.fav }
 </script>
-
-<style scoped>
-.bg-paw       { background-color: #FF8C55; }
-.border-paw   { border-color: #FF8C55; }
-.text-paw     { color: #FF8C55; }
-.text-muted   { color: #8B7355; }
-.border-caramel\/30 { border-color: rgba(244,162,97,0.3); }
-
-.fab { box-shadow: 0 8px 24px rgba(255,140,85,0.4); transition: transform 0.2s, box-shadow 0.2s; }
-.fab:hover { transform: scale(1.08); box-shadow: 0 12px 32px rgba(255,140,85,0.5); }
-</style>

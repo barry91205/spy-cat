@@ -71,7 +71,6 @@ const navItems: NavItem[] = [
   { icon: '💬', label: '私人訊息', path: '/messages', badge: 3 },
   { icon: '❤️', label: '我的收藏', path: '/favorites' },
   { icon: '🗺️', label: '協尋地圖', path: '/map' },
-  { icon: '✅', label: '成功案例', path: '/success' },
 ]
 
 const mobileNavItems = navItems.filter(i =>
